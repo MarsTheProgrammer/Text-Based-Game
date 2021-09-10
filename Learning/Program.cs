@@ -21,6 +21,7 @@ namespace TextBasedGame {
     class Program {
 
         public static Random randomNumber = new Random();
+        public static Random enemyRandomHealth = new Random();
 
         //Player variables
         public static int healthPotion = 3;
@@ -28,6 +29,7 @@ namespace TextBasedGame {
         public static int playerHealth = 100;
         public static int expEarned = 0;
         public static int playerAttack = 0;
+        public static int level = 0;
     
         //Enemy variables
         public static int enemyAttack = 0;
@@ -55,23 +57,32 @@ namespace TextBasedGame {
             FIGHTING:
                 while (playerHealth > 0) {
                     switch (mainInput) {
-
                         case 1://Play
                             
                             Console.WriteLine("*****************************************************************");
                             Console.WriteLine($"\tA {enemy} has appeared to attack you!");
                             Console.WriteLine("*****************************************************************\n");
-                            
-                            enemyHealth = randomNumber.Next(20, 51);
+
+                            //Set the amount of health randomly for an enemy
+                            enemyHealth = enemyRandomHealth.Next(10, 31);
+
                             Console.WriteLine($"\t{enemy}'s health is {enemyHealth}\n");
                             Console.WriteLine($"\tYou have {healthPotion} health potions left.\n");
+
+                            levelChecker(expEarned);
+
                             Console.WriteLine($"\tYou have {playerHealth} HP left.\n");
+                            Console.WriteLine($"\tYou are level: {level}\n");
+
+                            //We added this kind of an easter egg for when the player asks for potions when there are none. 3 times means punishment
+                            int notEnoughPotionCounter = 0;
 
                             while (enemyHealth > 0) {
                                 Console.WriteLine("\tPlease input a number\n" +
                                 "\t1 - Attack\n" +
                                 "\t2 - Drink Health Potion\n" +
                                 "\t3 - Run\n");
+
                                 //Parses the players input into integer
                                 int gameInput = Int32.Parse(Console.ReadLine());
 
@@ -80,6 +91,7 @@ namespace TextBasedGame {
 
                                         enemyAttack = EnemyAttackAmount();
                                         playerHealth -= enemyAttack;
+
                                         Console.WriteLine("*****************************************************************");
                                         Console.WriteLine($"\t{enemy} hit you for {enemyAttack} HP.");
                                         Console.WriteLine($"\tYou have {playerHealth} HP left.\n");
@@ -97,33 +109,57 @@ namespace TextBasedGame {
                                             game = false;
                                             goto GAME;
                                         }
+
                                         if (enemyHealth <= 0) {
                                             Console.WriteLine($"\tYou killed the {enemy}. Congrats! You earned {expEarned} EXP\n");
+
                                             int tempHealthPotion = healthPotion + HealthPotionChance();
                                             if (tempHealthPotion > healthPotion) {
                                                 Console.WriteLine($"\tA health potion was dropped by the {enemy}.\n");
                                                 Console.WriteLine($"\tYou now have {healthPotion} health potions\n");
                                             }
-                                            //Console.WriteLine($"You have {healthPotion} health potions");
+
                                             Console.WriteLine("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-                                            Console.WriteLine($"\tYour total EXP is: {expEarned}");
-                                            Console.WriteLine("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n");
+                                            Console.WriteLine($"\tYour total EXP is: {expEarned}\n");
+
+                                            int tempLevel = level;
+                                            levelChecker(expEarned);
+                                            if (tempLevel < level) {
+                                                Console.WriteLine($"\tLevel up! You are now level {level}!");
+                                                levelChanger(level);
+                                            }
+
+                                            Console.WriteLine("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
                                             break;//case 1 gameInput
                                         }
 
                                         break;//case 1 gameInput
 
                                     case 2://Drink Health Potion
-                                        Console.WriteLine("*****************************************************************");
-                                        Console.WriteLine($"\tYou drank a health potion. You have {healthPotion} health potions left.\n");
-                                        healthPotion--;
-                                        playerHealth += potionHealing;
-                                        Console.WriteLine($"\tThe potion healed you for {potionHealing} HP, you now have {playerHealth} HP left.");
-                                        Console.WriteLine("*****************************************************************\n");
-                                        break;//Case 2 gameInput
+                                        
+                                        if (healthPotion >= 0) {
+                                            Console.WriteLine("*****************************************************************");
+                                            Console.WriteLine($"\tYou drank a health potion. You have {healthPotion} health potions left.\n");
+
+                                            healthPotion--;
+                                            playerHealth += potionHealing;
+
+                                            Console.WriteLine($"\tThe potion healed you for {potionHealing} HP, you now have {playerHealth} HP left.");
+                                            Console.WriteLine("*****************************************************************\n");
+                                        } else {
+                                            Console.WriteLine("You do not have any health potions left. Fight or flight!");
+                                            notEnoughPotionCounter++;
+                                        } 
+                                        
+                                        if (notEnoughPotionCounter >=3) {
+                                            playerHealth -= 30;
+                                            Console.WriteLine("YOU HAVE NO POTIONS LEFT. DUE TO YOUR INCOMPENTENCE, YOU HAVE LOST 30 HEALTH!");
+                                        }
+
+                                        break;//to gameInput : Case 2
 
                                     case 3://Run
-                                        Console.WriteLine("\tcase 3");
+                                        Console.WriteLine($"\tYou ran away from the {enemy} like the coward you are.");
                                         //Jumps out of FIGHTING and moves to GAME
                                         goto GAME;
 
@@ -140,8 +176,9 @@ namespace TextBasedGame {
             }
             //End game good-bye
             Console.WriteLine("************************************************************************************************************");
-            Console.WriteLine($"\tThank you for playing. You earned a total of {expEarned} EXP during your battles.");
+            Console.WriteLine($"\tThank you for playing. You earned a total of {expEarned} EXP during your battles and reached level {level}.");
             Console.WriteLine("************************************************************************************************************");
+            //Shows the end screen for a few seconds before closing
             System.Threading.Thread.Sleep(4000);
 
         }//end of main
@@ -180,5 +217,67 @@ namespace TextBasedGame {
             int expEarned = PlayerAttackAmount();
             return expEarned;
         }
+
+        //We are useding this to determine the level of the player
+        public static void levelChecker(int expEarned) {
+            if (expEarned > 0 && expEarned < 100) {
+                level = 1;
+            } else if (expEarned >= 101 && expEarned < 400) {
+                level = 2;
+            } else if (expEarned >= 401 && expEarned< 800) {
+                level = 3;
+            } else if (expEarned >= 801 && expEarned < 1100) {
+                level = 4;
+            } else if (expEarned >= 1101 && expEarned < 1400) {
+                level = 5;
+            } else if (expEarned >= 1400) {
+                level = 6;
+            }
+
+        }
+
+        //This will change stats based upon the level of the player
+        //The stats will need to be adjusted for fairness
+        public static void levelChanger(int level) {
+            
+            if (level == 1) {
+                enemyRandomHealth.Next(32, 41);
+                if (playerHealth < 119) {
+                    playerHealth = 120;
+                }
+                potionHealing = 30;
+            } else if (level == 2) {
+                enemyRandomHealth.Next(42, 51);
+                if (playerHealth < 130) {
+                    playerHealth = 130;
+                }
+                potionHealing = 40;
+            } else if (level == 3) {
+                enemyRandomHealth.Next(52, 61);
+                if (playerHealth < 140) {
+                    playerHealth = 140;
+                }
+                potionHealing = 45;
+            } else if (level == 4) {
+                enemyRandomHealth.Next(62, 71);
+                if (playerHealth < 150) {
+                    playerHealth = 150;
+                }
+                potionHealing = 50;
+            } else if (level == 5) {
+                enemyRandomHealth.Next(72, 81);
+                if (playerHealth < 160) {
+                    playerHealth = 160;
+                }
+                potionHealing = 55;
+            } else if (level ==6) {
+                enemyRandomHealth.Next(82, 91);
+                if (playerHealth < 200) {
+                    playerHealth = 200;
+                }
+                potionHealing = 70;
+            }
+        }
+
     }//end of class
 }
