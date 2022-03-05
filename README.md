@@ -5,3 +5,5 @@ The player has a simple leveling system that allows for the enemies health to in
 As the player's level increases, the potion drop rate decreases.
 
 There is a hidden easter egg if the player asked for potions too many times. Not all easter eggs are good.
+
+Currently I am working on creating a new text game called Quest of the Six Elements. I hope to have that released soon
